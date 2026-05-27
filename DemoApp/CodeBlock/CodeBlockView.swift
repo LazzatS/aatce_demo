@@ -14,16 +14,16 @@ struct CodeBlockView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(code)
                 .font(.system(.subheadline, design: .monospaced))
-                .foregroundColor(.white)
+                .foregroundColor(.primaryText)
                 .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.black.opacity(0.3))
+                .background(Color.cardBg)
                 .cornerRadius(8)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .frame(minWidth: .zero, alignment: .leading)
-        .padding(50)
-        .background(Color.black.opacity(0.35))
+        .padding(.vertical, 50)
+        .background(Color.cardBg)
         .cornerRadius(10)
     }
 }

@@ -13,10 +13,10 @@ struct HeaderView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Good morning 👋")
                     .font(.subheadline)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondaryText)
                 HStack(spacing: 0) {
                     Text("Hello, ")
-                        .font(.largeTitle).fontWeight(.bold).foregroundColor(.white)
+                        .font(.largeTitle).fontWeight(.bold).foregroundColor(.primaryText)
                     Text("Aisha")
                         .font(.largeTitle).fontWeight(.bold).foregroundColor(.purpleAccent)
                 }

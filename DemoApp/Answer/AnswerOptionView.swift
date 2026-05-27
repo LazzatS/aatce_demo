@@ -44,17 +44,17 @@ struct AnswerOptionView: View {
                     Circle().fill(circleColor).frame(width: 36, height: 36)
                     if state == .correct {
                         Image(systemName: "checkmark")
-                            .foregroundColor(.white)
+                            .foregroundColor(.primaryText)
                             .font(.system(size: 13, weight: .bold))
                     } else {
                         Text(letter)
-                            .foregroundColor(.white)
+                            .foregroundColor(.primaryText)
                             .font(.system(size: 15, weight: .semibold))
                     }
                 }
 
                 Text(text)
-                    .foregroundColor(state == .correct ? .correctGreen : .white)
+                    .foregroundColor(state == .correct ? .correctGreen : .primaryText)
                     .font(.system(size: 16))
 
                 Spacer()

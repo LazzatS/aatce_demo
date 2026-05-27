@@ -14,9 +14,9 @@ struct QuestionProgressView: View {
     var body: some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 10) {
-                Text("Question\nprogress")
+                Text("Question progress")
                     .font(.subheadline)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondaryText)
                     .lineLimit(2)
 
                 HStack(spacing: 5) {
@@ -30,14 +30,14 @@ struct QuestionProgressView: View {
 
             Spacer()
 
-            VStack(spacing: 0) {
+            HStack(spacing: 0) {
                 Text("\(current - 1)")
-                    .font(.title2).fontWeight(.bold).foregroundColor(.white)
+                    .font(.title2).fontWeight(.bold).foregroundColor(.primaryText)
                 Text("/")
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondaryText)
                 Text("\(total)")
-                    .font(.title2).foregroundColor(.gray)
-            }
+                    .font(.title2).foregroundColor(.secondaryText)
+            }.padding()
         }
         .padding(16)
         .background(Color.cardBg)

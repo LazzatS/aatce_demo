@@ -18,7 +18,7 @@ struct ContentView: View {
     private let questions = [
         QuizQuestion(
             title: "What does this closure output? Fill in the blank:",
-            codeBlock: "let arr = [1, 2, 3, 4, 5]\nlet result = arr.filter { $0 % 2 == 0 }\nprint(result)",
+            codeBlock: "let arr = [1, 2, 3, 4, 5]\nlet result = arr.filter {\n    $0 % 2 == 0\n}\nprint(result)",
             difficulty: "Medium",
             tag: "Swift",
             options: [
@@ -42,7 +42,7 @@ struct ContentView: View {
         ),
         QuizQuestion(
             title: "What does map do in this context?",
-            codeBlock: "let numbers = [1, 2, 3]\nlet doubled = numbers.map { $0 * 2 }",
+            codeBlock: "let numbers = [1, 2, 3]\nlet doubled = numbers\n    .map { $0 * 2 }",
             difficulty: "Medium",
             tag: "Swift",
             options: [
@@ -74,38 +74,42 @@ struct ContentView: View {
                     QuestionProgressView(current: answeredCards + 1, total: questions.count)
                     if let question = currentQuestion {
                         QuestionCardView(question: question)
+                        AnswerSectionView(
+                            answeredCards: $answeredCards,
+                            correctCount: $correctCount,
+                            currentQuestion: .constant(currentQuestion),
+                            selectedAnswer: $selectedAnswer,
+                            showResult: $showResult,
+                            onSwapCard: {
+                                // Store result before loading next
+                                if let selected = selectedAnswer, let question = currentQuestion {
+                                    let option = question.options.first { $0.letter == selected }
+                                    quizResults.append(QuizResult(
+                                        questionId: question.id,
+                                        selectedOption: selected,
+                                        isCorrect: option?.isCorrect ?? false,
+                                        timestamp: Date()
+                                    ))
+                                }
+                                
+                                // Load next question
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                    loadNextQuestion()
+                                }
+                            }
+                        )
+                    } else {
+                        Spacer()
+                        ContentUnavailableView("No other questions left", systemImage: "flask")
+                            .padding(.vertical, 50)
+                   
                     }
-                    AnswerSectionView(
-                        answeredCards: $answeredCards,
-                        correctCount: $correctCount,
-                        currentQuestion: .constant(currentQuestion),
-                        selectedAnswer: $selectedAnswer,
-                        showResult: $showResult,
-                        onSwapCard: {
-                            // Store result before loading next
-                            if let selected = selectedAnswer, let question = currentQuestion {
-                                let option = question.options.first { $0.letter == selected }
-                                quizResults.append(QuizResult(
-                                    questionId: question.id,
-                                    selectedOption: selected,
-                                    isCorrect: option?.isCorrect ?? false,
-                                    timestamp: Date()
-                                ))
-                            }
-                            
-                            // Load next question
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                loadNextQuestion()
-                            }
-                        }
-                    )
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 16)
                 .padding(.bottom, 40)
             }
             .background(Color.appBackground.ignoresSafeArea())
-            .preferredColorScheme(.dark)
             .overlay(alignment: .bottom) {
                 if answeredCards > 0 && currentQuestionIndex >= questions.count {
                     VStack(spacing: 0) {

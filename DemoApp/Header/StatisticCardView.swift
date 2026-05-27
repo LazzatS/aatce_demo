@@ -16,22 +16,34 @@ struct StatisticCardView: View {
     
     var body: some View {
         ZStack {
-            Color.red
+            Color.cardBg
             HStack {
                 Image(systemName: iconName)
+                    .font(.headline)
+                    .foregroundColor(.purpleAccent)
                 VStack(alignment: .leading) {
                     Text(title)
-                        .font(.headline)
-                    Text(String(count))
-                    Text(units ?? "")
+                        .font(.caption)
+                        .foregroundColor(.secondaryText)
+                    HStack(spacing: 2) {
+                        Text(String(count))
+                            .font(.headline)
+                            .foregroundColor(.primaryText)
+                        if let units = units {
+                            Text(units)
+                                .font(.caption)
+                                .foregroundColor(.secondaryText)
+                        }
+                    }
                 }
             }
+            .padding(10)
         }
-        .frame(width: 100, height: 100)
+        .frame(height: 80)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(.gray, lineWidth: 3)
+                .stroke(Color.borderColor.opacity(0.5), lineWidth: 1)
         }
     }
 }

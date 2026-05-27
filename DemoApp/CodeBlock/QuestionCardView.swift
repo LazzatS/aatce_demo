@@ -28,12 +28,12 @@ struct QuestionCardView: View {
                     Text("swipe to skip")
                         .font(.caption)
                 }
-                .foregroundColor(.gray)
+                .foregroundColor(.secondaryText)
             }
 
             Text(question.title)
                 .font(.subheadline)
-                .foregroundColor(.white)
+                .foregroundColor(.primaryText)
 
             CodeBlockView(code: question.codeBlock)
 
@@ -51,16 +51,16 @@ struct QuestionCardView: View {
                 HStack(spacing: 8) {
                     Button(action: {}) {
                         Image(systemName: "bookmark")
-                            .foregroundColor(.gray)
+                            .foregroundColor(.secondaryText)
                             .frame(width: 34, height: 34)
-                            .background(Color.black.opacity(0.3))
+                            .background(Color.cardBg)
                             .cornerRadius(8)
                     }
                     Button(action: {}) {
                         Image(systemName: "info.circle")
-                            .foregroundColor(.gray)
+                            .foregroundColor(.secondaryText)
                             .frame(width: 34, height: 34)
-                            .background(Color.black.opacity(0.3))
+                            .background(Color.cardBg)
                             .cornerRadius(8)
                     }
                 }

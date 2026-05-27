@@ -67,7 +67,7 @@ struct AnswerSectionView: View {
                 Text("Choose the correct answer")
                     .font(.headline)
             }
-            .foregroundColor(.white)
+            .foregroundColor(.primaryText)
 
             VStack(spacing: 10) {
                 ForEach(currentQuestion?.options ?? [], id: \.letter) { option in
@@ -97,11 +97,11 @@ struct AnswerSectionView: View {
 
             // Type your answer
             HStack {
-                Rectangle().fill(Color.gray.opacity(0.3)).frame(height: 1)
+                Rectangle().fill(Color.tertiaryText.opacity(0.3)).frame(height: 1)
                 Text("or type your answer")
-                    .font(.caption).foregroundColor(.gray)
+                    .font(.caption).foregroundColor(.tertiaryText)
                     .fixedSize()
-                Rectangle().fill(Color.gray.opacity(0.3)).frame(height: 1)
+                Rectangle().fill(Color.tertiaryText.opacity(0.3)).frame(height: 1)
             }
 
             ZStack(alignment: .leading) {
@@ -113,7 +113,7 @@ struct AnswerSectionView: View {
                     .frame(height: 50)
                 Text("e.g.,  [2, 4]")
                     .font(.system(.body, design: .monospaced))
-                    .foregroundColor(Color.gray.opacity(0.4))
+                    .foregroundColor(Color.tertiaryText.opacity(0.5))
                     .padding(.leading, 16)
             }
             

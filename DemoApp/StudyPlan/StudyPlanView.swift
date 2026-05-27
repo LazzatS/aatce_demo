@@ -48,7 +48,7 @@ struct StudyPlanView: View {
                     Spacer()
                     Text("Step 2 of 3")
                         .font(.caption)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondaryText)
                 }
                 .padding(20)
                 
@@ -61,7 +61,7 @@ struct StudyPlanView: View {
                                 .frame(height: 3)
                         } else {
                             RoundedRectangle(cornerRadius: 2)
-                                .fill(Color.gray.opacity(0.3))
+                                .fill(Color.borderColor.opacity(0.5))
                                 .frame(height: 3)
                         }
                     }
@@ -76,14 +76,14 @@ struct StudyPlanView: View {
                             VStack(alignment: .leading, spacing: 12) {
                                 Text("QUIZ RESULTS")
                                     .font(.caption)
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(.secondaryText)
                                 
                                 VStack(spacing: 12) {
                                     HStack {
                                         VStack(alignment: .leading, spacing: 4) {
                                             Text("Correct Answers")
                                                 .font(.subheadline)
-                                                .foregroundColor(.gray)
+                                                .foregroundColor(.secondaryText)
                                             Text("\(correctCount) out of \(totalQuestions)")
                                                 .font(.title2)
                                                 .fontWeight(.bold)
@@ -93,7 +93,7 @@ struct StudyPlanView: View {
                                         VStack(alignment: .trailing, spacing: 4) {
                                             Text("Score")
                                                 .font(.subheadline)
-                                                .foregroundColor(.gray)
+                                                .foregroundColor(.secondaryText)
                                             Text("\(Int(Double(correctCount) / Double(totalQuestions) * 100))%")
                                                 .font(.title2)
                                                 .fontWeight(.bold)
@@ -121,7 +121,7 @@ struct StudyPlanView: View {
                                         HStack {
                                             Text("Answered: \(totalQuestions)")
                                                 .font(.caption)
-                                                .foregroundColor(.gray)
+                                                .foregroundColor(.secondaryText)
                                             Spacer()
                                             Text("Correct: \(correctCount)")
                                                 .font(.caption)
@@ -141,16 +141,16 @@ struct StudyPlanView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("COURSE SETUP")
                                 .font(.caption)
-                                .foregroundColor(.gray)
+                                .foregroundColor(.secondaryText)
                             Text("What will you ")
                                 .font(.system(size: 28, weight: .bold))
-                                .foregroundColor(.white) +
+                                .foregroundColor(.primaryText) +
                             Text("study?")
                                 .font(.system(size: 28, weight: .bold))
                                 .foregroundColor(.purpleAccent)
                             Text("Select your language and topics. The AI will build your personal quiz plan.")
                                 .font(.subheadline)
-                                .foregroundColor(.gray)
+                                .foregroundColor(.secondaryText)
                         }
                         .padding(.horizontal, 20)
                         
@@ -158,14 +158,14 @@ struct StudyPlanView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("LANGUAGE")
                                 .font(.caption)
-                                .foregroundColor(.gray)
+                                .foregroundColor(.secondaryText)
                                 .padding(.horizontal, 20)
                             HStack(spacing: 10) {
                                 ForEach(languages, id: \.self) { lang in
                                     Button(action: { selectedLanguage = lang }) {
                                         Text(lang)
                                             .font(.callout)
-                                            .foregroundColor(.white)
+                                            .foregroundColor(selectedLanguage == lang ? .white : .primaryText)
                                             .frame(height: 44)
                                             .frame(maxWidth: .infinity)
                                             .background(selectedLanguage == lang ? Color.purpleAccent : Color.cardBg)
@@ -184,7 +184,7 @@ struct StudyPlanView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("TOPICS TO COVER")
                                 .font(.caption)
-                                .foregroundColor(.gray)
+                                .foregroundColor(.secondaryText)
                                 .padding(.horizontal, 20)
                             
                             VStack(spacing: 12) {
@@ -205,10 +205,10 @@ struct StudyPlanView: View {
                                             VStack(alignment: .leading, spacing: 4) {
                                                 Text(topic.0)
                                                     .font(.headline)
-                                                    .foregroundColor(.white)
+                                                    .foregroundColor(.primaryText)
                                                 Text(topic.1)
                                                     .font(.caption)
-                                                    .foregroundColor(.gray)
+                                                    .foregroundColor(.secondaryText)
                                             }
                                             Spacer()
                                             
@@ -219,7 +219,7 @@ struct StudyPlanView: View {
                                             }
                                         }
                                         .padding(16)
-                                        .background(isSelected ? Color.purpleAccent.opacity(0.15) : (isEnabled ? Color.cardBg : Color.gray.opacity(0.05)))
+                                        .background(isSelected ? Color.purpleAccent.opacity(0.15) : (isEnabled ? Color.cardBg : Color.borderColor.opacity(0.3)))
                                         .cornerRadius(12)
                                         .overlay(
                                             RoundedRectangle(cornerRadius: 12)
@@ -237,7 +237,7 @@ struct StudyPlanView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("DAILY GOAL")
                                 .font(.caption)
-                                .foregroundColor(.gray)
+                                .foregroundColor(.secondaryText)
                                 .padding(.horizontal, 20)
                             
                             HStack(spacing: 12) {
@@ -246,12 +246,13 @@ struct StudyPlanView: View {
                                         VStack(spacing: 8) {
                                             Image(systemName: goal == 5 ? "bolt.fill" : goal == 10 ? "flame.fill" : "rocket.fill")
                                                 .font(.system(size: 20))
+                                                .foregroundColor(selectedGoal == goal ? .purpleAccent : .secondaryText)
                                             Text("\(goal)")
                                                 .font(.headline)
-                                                .foregroundColor(.white)
+                                                .foregroundColor(.primaryText)
                                             Text("questions")
                                                 .font(.caption)
-                                                .foregroundColor(.gray)
+                                                .foregroundColor(.secondaryText)
                                         }
                                         .frame(maxWidth: .infinity)
                                         .frame(height: 100)
@@ -277,10 +278,10 @@ struct StudyPlanView: View {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("AI will personalise your path. ")
                                         .font(.system(.subheadline, design: .default))
-                                        .foregroundColor(.white) +
+                                        .foregroundColor(.primaryText) +
                                     Text("Based on your selections, it will generate fresh code snippets, detect weak spots, and focus questions where you need practice most.")
                                         .font(.system(.subheadline, design: .default))
-                                        .foregroundColor(.gray)
+                                        .foregroundColor(.secondaryText)
                                 }
                             }
                             .padding(16)
@@ -311,14 +312,14 @@ struct StudyPlanView: View {
                             Button(action: { dismiss() }) {
                                 Text("Skip setup — go straight in")
                                     .font(.headline)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.primaryText)
                                     .frame(maxWidth: .infinity)
                                     .frame(height: 50)
                                     .background(Color.transparent)
                                     .cornerRadius(12)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 12)
-                                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                            .stroke(Color.borderColor.opacity(0.5), lineWidth: 1)
                                     )
                             }
                         }
@@ -327,6 +328,6 @@ struct StudyPlanView: View {
                 }
             }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(nil)
     }
 }
