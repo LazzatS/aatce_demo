@@ -57,11 +57,6 @@ struct StudyPlanView: View {
             VStack(spacing: 0) {
                 // Header
                 HStack {
-                    Button(action: { dismiss() }) {
-                        Image(systemName: "chevron.left")
-                            .foregroundColor(.purpleAccent)
-                            .font(.system(size: 16, weight: .semibold))
-                    }
                     Spacer()
                     Text("Step 2 of 3")
                         .font(.caption)
@@ -368,6 +363,7 @@ struct StudyPlanView: View {
         .onAppear {
             recordAttemptStatsIfNeeded()
         }
+        .navigationTitle("Study Plan")
         .navigationDestination(isPresented: $showProfileScreen) {
             ProfileView(
                 name: registeredName,

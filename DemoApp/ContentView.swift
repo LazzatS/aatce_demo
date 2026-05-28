@@ -214,6 +214,8 @@ struct ContentView: View {
                     .background(Color.appBackground)
                 }
             }
+            .navigationTitle("Home")
+            .navigationBarHidden(true)
         }
     }
     
