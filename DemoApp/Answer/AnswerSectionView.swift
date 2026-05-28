@@ -10,7 +10,7 @@ import SwiftUI
 struct AnswerSectionView: View {
     @Binding var answeredCards: Int
     @Binding var correctCount: Int
-    @Binding var currentQuestion: QuizQuestion?
+    let currentQuestion: QuizQuestion?
     @Binding var selectedAnswer: String?
     @Binding var showResult: Bool
     

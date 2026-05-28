@@ -39,44 +39,7 @@ struct ContentView: View {
     
     // MARK: -
     
-    private let questions = [
-        QuizQuestion(
-            title: "What does this closure output? Fill in the blank:",
-            codeBlock: "let arr = [1, 2, 3, 4, 5]\nlet result = arr.filter {\n    $0 % 2 == 0\n}\nprint(result)",
-            difficulty: "Medium",
-            tag: "Swift",
-            options: [
-                QuizOption(letter: "A", text: "[1, 2, 3, 4, 5]", isCorrect: false),
-                QuizOption(letter: "B", text: "[2, 4]", isCorrect: true),
-                QuizOption(letter: "C", text: "[1, 3, 5]", isCorrect: false),
-                QuizOption(letter: "D", text: "[2, 4, 6]", isCorrect: false)
-            ]
-        ),
-        QuizQuestion(
-            title: "What is the output of this optional binding?",
-            codeBlock: "let value: Int? = 42\nif let val = value {\n    print(val)\n}",
-            difficulty: "Easy",
-            tag: "Swift",
-            options: [
-                QuizOption(letter: "A", text: "nil", isCorrect: false),
-                QuizOption(letter: "B", text: "42", isCorrect: true),
-                QuizOption(letter: "C", text: "Optional(42)", isCorrect: false),
-                QuizOption(letter: "D", text: "Error", isCorrect: false)
-            ]
-        ),
-        QuizQuestion(
-            title: "What does map do in this context?",
-            codeBlock: "let numbers = [1, 2, 3]\nlet doubled = numbers\n    .map { $0 * 2 }",
-            difficulty: "Medium",
-            tag: "Swift",
-            options: [
-                QuizOption(letter: "A", text: "[2, 4, 6]", isCorrect: true),
-                QuizOption(letter: "B", text: "[1, 2, 3]", isCorrect: false),
-                QuizOption(letter: "C", text: "[2, 4, 6, 8]", isCorrect: false),
-                QuizOption(letter: "D", text: "[1, 4, 9]", isCorrect: false)
-            ]
-        )
-    ]
+    @State private var questions: [QuizQuestion] = []
     
     var currentQuestion: QuizQuestion? {
         guard currentQuestionIndex < questions.count else { return nil }
@@ -121,13 +84,16 @@ struct ContentView: View {
                         )
                         StatsRowView(streakDays: streakDays, xp: xpTotal, rankText: "-")
                     }
-                    QuestionProgressView(current: answeredCards + 1, total: questions.count)
+                    QuestionProgressView(
+                        current: questions.isEmpty ? 0 : min(currentQuestionIndex + 1, questions.count),
+                        total: questions.count
+                    )
                     if let question = currentQuestion {
                         QuestionCardView(question: question)
                         AnswerSectionView(
                             answeredCards: $answeredCards,
                             correctCount: $correctCount,
-                            currentQuestion: .constant(currentQuestion),
+                            currentQuestion: question,
                             selectedAnswer: $selectedAnswer,
                             showResult: $showResult,
                             onSwapCard: {
@@ -216,6 +182,32 @@ struct ContentView: View {
             }
             .navigationTitle("Home")
             .navigationBarHidden(true)
+        }
+        .onAppear() {
+            questions = loadQuestions()
+        }
+    }
+    
+    private func loadQuestions() -> [QuizQuestion] {
+        
+        guard let path = Bundle.main.path(forResource: "questions", ofType: "json")
+        else {
+            return []
+        }
+
+        let fileManager = FileManager.default
+
+        guard fileManager.fileExists(atPath: path)
+        else {
+            return []
+        }
+
+        do {
+            let data = try Data(contentsOf: URL(fileURLWithPath: path))
+            let questions = try JSONDecoder().decode([QuizQuestion].self, from: data)
+            return questions
+        } catch {
+            return []
         }
     }
     

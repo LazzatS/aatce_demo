@@ -5,13 +5,21 @@
 
 import Foundation
 
-struct QuizQuestion {
-    let id: UUID
+struct QuizQuestion: Codable, Identifiable {
+    let id: UUID = UUID()
     let title: String
     let codeBlock: String
     let difficulty: String
     let tag: String
     let options: [QuizOption]
+    
+    enum CodingKeys: String, CodingKey {
+        case title
+        case codeBlock
+        case difficulty
+        case tag
+        case options
+    }
     
     init(
         title: String,
@@ -20,7 +28,6 @@ struct QuizQuestion {
         tag: String = "Swift",
         options: [QuizOption]
     ) {
-        self.id = UUID()
         self.title = title
         self.codeBlock = codeBlock
         self.difficulty = difficulty
@@ -29,7 +36,7 @@ struct QuizQuestion {
     }
 }
 
-struct QuizOption {
+struct QuizOption: Codable {
     let letter: String
     let text: String
     let isCorrect: Bool
