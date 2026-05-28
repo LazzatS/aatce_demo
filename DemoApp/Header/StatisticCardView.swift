@@ -10,7 +10,7 @@ import SwiftUI
 struct StatisticCardView: View {
     
     var title: String
-    var count: Int
+    var value: String
     var iconName: String
     var units: String?
     
@@ -26,7 +26,7 @@ struct StatisticCardView: View {
                         .font(.caption)
                         .foregroundColor(.secondaryText)
                     HStack(spacing: 2) {
-                        Text(String(count))
+                        Text(value)
                             .font(.headline)
                             .foregroundColor(.primaryText)
                         if let units = units {

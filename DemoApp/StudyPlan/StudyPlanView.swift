@@ -9,13 +9,24 @@ import SwiftUI
 
 struct StudyPlanView: View {
     @Environment(\.dismiss) var dismiss
-    @State private var selectedLanguage = "Swift"
+    @AppStorage("user.name") private var registeredName = ""
+    @AppStorage("user.surname") private var registeredSurname = ""
+    @AppStorage("user.selectedLanguage") private var selectedLanguage = "Swift"
+    @AppStorage("stats.attempts") private var testAttempts = 0
+    @AppStorage("stats.attemptsToday") private var attemptsToday = 0
+    @AppStorage("stats.lastAttemptDate") private var lastAttemptDate = ""
+    @AppStorage("stats.totalCorrectAnswers") private var totalCorrectAnswers = 0
+    @AppStorage("stats.totalAnsweredQuestions") private var totalAnsweredQuestions = 0
     @State private var selectedTopics: Set<String> = ["Variables & types", "Control flow", "Closures"]
     @State private var selectedGoal = 10
+    @State private var showRegistrationSheet = false
+    @State private var showProfileScreen = false
+    @State private var hasRecordedAttempt = false
     
     let quizResults: [QuizResult]?
     let correctCount: Int
     let totalQuestions: Int
+    let onUserRegistered: (String, String) -> Void
     
     let languages = ["Swift", "Python", "JS", "Kotlin", "More"]
     let topics = [
@@ -27,10 +38,16 @@ struct StudyPlanView: View {
         ("Concurrency", "Unlock after basics")
     ]
     
-    init(quizResults: [QuizResult]? = nil, correctCount: Int = 0, totalQuestions: Int = 0) {
+    init(
+        quizResults: [QuizResult]? = nil,
+        correctCount: Int = 0,
+        totalQuestions: Int = 0,
+        onUserRegistered: @escaping (String, String) -> Void = { _, _ in }
+    ) {
         self.quizResults = quizResults
         self.correctCount = correctCount
         self.totalQuestions = totalQuestions
+        self.onUserRegistered = onUserRegistered
     }
     
     var body: some View {
@@ -137,190 +154,209 @@ struct StudyPlanView: View {
                             .padding(.bottom, 12)
                         }
                         
-                        // Title
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("COURSE SETUP")
-                                .font(.caption)
-                                .foregroundColor(.secondaryText)
-                            Text("What will you ")
-                                .font(.system(size: 28, weight: .bold))
-                                .foregroundColor(.primaryText) +
-                            Text("study?")
-                                .font(.system(size: 28, weight: .bold))
-                                .foregroundColor(.purpleAccent)
-                            Text("Select your language and topics. The AI will build your personal quiz plan.")
-                                .font(.subheadline)
-                                .foregroundColor(.secondaryText)
-                        }
-                        .padding(.horizontal, 20)
-                        
-                        // Language Selection
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("LANGUAGE")
-                                .font(.caption)
-                                .foregroundColor(.secondaryText)
+                        if !isAuthorized {
+                            // Title
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("COURSE SETUP")
+                                    .font(.caption)
+                                    .foregroundColor(.secondaryText)
+                                Text("What will you ")
+                                    .font(.system(size: 28, weight: .bold))
+                                    .foregroundColor(.primaryText) +
+                                Text("study?")
+                                    .font(.system(size: 28, weight: .bold))
+                                    .foregroundColor(.purpleAccent)
+                                Text("Select your language and topics. The AI will build your personal quiz plan.")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondaryText)
+                            }
+                            .padding(.horizontal, 20)
+                            
+                            // Language Selection
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("LANGUAGE")
+                                    .font(.caption)
+                                    .foregroundColor(.secondaryText)
+                                    .padding(.horizontal, 20)
+                                HStack(spacing: 10) {
+                                    ForEach(languages, id: \.self) { lang in
+                                        Button(action: { selectedLanguage = lang }) {
+                                            Text(lang)
+                                                .font(.callout)
+                                                .foregroundColor(selectedLanguage == lang ? .white : .primaryText)
+                                                .frame(height: 44)
+                                                .frame(maxWidth: .infinity)
+                                                .background(selectedLanguage == lang ? Color.purpleAccent : Color.cardBg)
+                                                .cornerRadius(12)
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 12)
+                                                        .stroke(selectedLanguage == lang ? Color.purpleAccent : Color.clear, lineWidth: 1.5)
+                                                )
+                                        }
+                                    }
+                                }
                                 .padding(.horizontal, 20)
-                            HStack(spacing: 10) {
-                                ForEach(languages, id: \.self) { lang in
-                                    Button(action: { selectedLanguage = lang }) {
-                                        Text(lang)
-                                            .font(.callout)
-                                            .foregroundColor(selectedLanguage == lang ? .white : .primaryText)
-                                            .frame(height: 44)
-                                            .frame(maxWidth: .infinity)
-                                            .background(selectedLanguage == lang ? Color.purpleAccent : Color.cardBg)
+                            }
+                            
+                            // Topics
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("TOPICS TO COVER")
+                                    .font(.caption)
+                                    .foregroundColor(.secondaryText)
+                                    .padding(.horizontal, 20)
+                                
+                                VStack(spacing: 12) {
+                                    ForEach(Array(topics.enumerated()), id: \.offset) { index, topic in
+                                        let isSelected = selectedTopics.contains(topic.0)
+                                        let isEnabled = index < 5
+                                        
+                                        Button(action: {
+                                            if isEnabled {
+                                                if isSelected {
+                                                    selectedTopics.remove(topic.0)
+                                                } else {
+                                                    selectedTopics.insert(topic.0)
+                                                }
+                                            }
+                                        }) {
+                                            HStack(spacing: 12) {
+                                                VStack(alignment: .leading, spacing: 4) {
+                                                    Text(topic.0)
+                                                        .font(.headline)
+                                                        .foregroundColor(.primaryText)
+                                                    Text(topic.1)
+                                                        .font(.caption)
+                                                        .foregroundColor(.secondaryText)
+                                                }
+                                                Spacer()
+                                                
+                                                if isSelected {
+                                                    Image(systemName: "checkmark.circle.fill")
+                                                        .foregroundColor(.purpleAccent)
+                                                        .font(.system(size: 24))
+                                                }
+                                            }
+                                            .padding(16)
+                                            .background(isSelected ? Color.purpleAccent.opacity(0.15) : (isEnabled ? Color.cardBg : Color.borderColor.opacity(0.3)))
                                             .cornerRadius(12)
                                             .overlay(
                                                 RoundedRectangle(cornerRadius: 12)
-                                                    .stroke(selectedLanguage == lang ? Color.purpleAccent : Color.clear, lineWidth: 1.5)
+                                                    .stroke(isSelected ? Color.purpleAccent : Color.clear, lineWidth: 1.5)
                                             )
+                                            .opacity(isEnabled ? 1 : 0.6)
+                                        }
+                                        .disabled(!isEnabled)
                                     }
                                 }
-                            }
-                            .padding(.horizontal, 20)
-                        }
-                        
-                        // Topics
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("TOPICS TO COVER")
-                                .font(.caption)
-                                .foregroundColor(.secondaryText)
                                 .padding(.horizontal, 20)
+                            }
                             
-                            VStack(spacing: 12) {
-                                ForEach(Array(topics.enumerated()), id: \.offset) { index, topic in
-                                    let isSelected = selectedTopics.contains(topic.0)
-                                    let isEnabled = index < 5
-                                    
-                                    Button(action: {
-                                        if isEnabled {
-                                            if isSelected {
-                                                selectedTopics.remove(topic.0)
-                                            } else {
-                                                selectedTopics.insert(topic.0)
-                                            }
-                                        }
-                                    }) {
-                                        HStack(spacing: 12) {
-                                            VStack(alignment: .leading, spacing: 4) {
-                                                Text(topic.0)
+                            // Daily Goal
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("DAILY GOAL")
+                                    .font(.caption)
+                                    .foregroundColor(.secondaryText)
+                                    .padding(.horizontal, 20)
+                                
+                                HStack(spacing: 12) {
+                                    ForEach([5, 10, 20], id: \.self) { goal in
+                                        Button(action: { selectedGoal = goal }) {
+                                            VStack(spacing: 8) {
+                                                Image(systemName: goal == 5 ? "bolt.fill" : goal == 10 ? "flame.fill" : "rocket.fill")
+                                                    .font(.system(size: 20))
+                                                    .foregroundColor(selectedGoal == goal ? .purpleAccent : .secondaryText)
+                                                Text("\(goal)")
                                                     .font(.headline)
                                                     .foregroundColor(.primaryText)
-                                                Text(topic.1)
+                                                Text("questions")
                                                     .font(.caption)
                                                     .foregroundColor(.secondaryText)
                                             }
-                                            Spacer()
-                                            
-                                            if isSelected {
-                                                Image(systemName: "checkmark.circle.fill")
-                                                    .foregroundColor(.purpleAccent)
-                                                    .font(.system(size: 24))
-                                            }
+                                            .frame(maxWidth: .infinity)
+                                            .frame(height: 100)
+                                            .background(selectedGoal == goal ? Color.purpleAccent.opacity(0.2) : Color.cardBg)
+                                            .cornerRadius(12)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 12)
+                                                    .stroke(selectedGoal == goal ? Color.purpleAccent : Color.clear, lineWidth: 1.5)
+                                            )
                                         }
-                                        .padding(16)
-                                        .background(isSelected ? Color.purpleAccent.opacity(0.15) : (isEnabled ? Color.cardBg : Color.borderColor.opacity(0.3)))
-                                        .cornerRadius(12)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .stroke(isSelected ? Color.purpleAccent : Color.clear, lineWidth: 1.5)
-                                        )
-                                        .opacity(isEnabled ? 1 : 0.6)
                                     }
-                                    .disabled(!isEnabled)
                                 }
-                            }
-                            .padding(.horizontal, 20)
-                        }
-                        
-                        // Daily Goal
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("DAILY GOAL")
-                                .font(.caption)
-                                .foregroundColor(.secondaryText)
                                 .padding(.horizontal, 20)
+                            }
                             
-                            HStack(spacing: 12) {
-                                ForEach([5, 10, 20], id: \.self) { goal in
-                                    Button(action: { selectedGoal = goal }) {
-                                        VStack(spacing: 8) {
-                                            Image(systemName: goal == 5 ? "bolt.fill" : goal == 10 ? "flame.fill" : "rocket.fill")
-                                                .font(.system(size: 20))
-                                                .foregroundColor(selectedGoal == goal ? .purpleAccent : .secondaryText)
-                                            Text("\(goal)")
-                                                .font(.headline)
-                                                .foregroundColor(.primaryText)
-                                            Text("questions")
-                                                .font(.caption)
-                                                .foregroundColor(.secondaryText)
-                                        }
-                                        .frame(maxWidth: .infinity)
-                                        .frame(height: 100)
-                                        .background(selectedGoal == goal ? Color.purpleAccent.opacity(0.2) : Color.cardBg)
-                                        .cornerRadius(12)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .stroke(selectedGoal == goal ? Color.purpleAccent : Color.clear, lineWidth: 1.5)
-                                        )
+                            // AI Info Box
+                            VStack(alignment: .leading, spacing: 12) {
+                                HStack(alignment: .top, spacing: 12) {
+                                    Image(systemName: "sparkles")
+                                        .foregroundColor(.purpleAccent)
+                                        .font(.system(size: 18))
+                                    
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("AI will personalise your path. ")
+                                            .font(.system(.subheadline, design: .default))
+                                            .foregroundColor(.primaryText) +
+                                        Text("Based on your selections, it will generate fresh code snippets, detect weak spots, and focus questions where you need practice most.")
+                                            .font(.system(.subheadline, design: .default))
+                                            .foregroundColor(.secondaryText)
                                     }
                                 }
+                                .padding(16)
+                                .background(Color.purpleAccent.opacity(0.1))
+                                .cornerRadius(12)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.purpleAccent.opacity(0.3), lineWidth: 1)
+                                )
                             }
                             .padding(.horizontal, 20)
                         }
-                        
-                        // AI Info Box
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack(alignment: .top, spacing: 12) {
-                                Image(systemName: "sparkles")
-                                    .foregroundColor(.purpleAccent)
-                                    .font(.system(size: 18))
-                                
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("AI will personalise your path. ")
-                                        .font(.system(.subheadline, design: .default))
-                                        .foregroundColor(.primaryText) +
-                                    Text("Based on your selections, it will generate fresh code snippets, detect weak spots, and focus questions where you need practice most.")
-                                        .font(.system(.subheadline, design: .default))
-                                        .foregroundColor(.secondaryText)
-                                }
-                            }
-                            .padding(16)
-                            .background(Color.purpleAccent.opacity(0.1))
-                            .cornerRadius(12)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color.purpleAccent.opacity(0.3), lineWidth: 1)
-                            )
-                        }
-                        .padding(.horizontal, 20)
                         
                         // Buttons
                         VStack(spacing: 12) {
-                            Button(action: {}) {
-                                HStack(spacing: 8) {
-                                    Image(systemName: "play.fill")
-                                    Text("Build my study plan")
-                                }
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 50)
-                                .background(Color.purpleAccent)
-                                .cornerRadius(12)
-                            }
-                            
-                            Button(action: { dismiss() }) {
-                                Text("Skip setup — go straight in")
+                            if isAuthorized {
+                                Button(action: { showProfileScreen = true }) {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "arrow.right")
+                                        Text("Continue")
+                                    }
                                     .font(.headline)
-                                    .foregroundColor(.primaryText)
+                                    .foregroundColor(.white)
                                     .frame(maxWidth: .infinity)
                                     .frame(height: 50)
-                                    .background(Color.transparent)
+                                    .background(Color.purpleAccent)
                                     .cornerRadius(12)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .stroke(Color.borderColor.opacity(0.5), lineWidth: 1)
-                                    )
+                                }
+                            } else {
+                                Button(action: {
+                                    showRegistrationSheet = true
+                                }) {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "play.fill")
+                                        Text("Build my study plan")
+                                    }
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 50)
+                                    .background(Color.purpleAccent)
+                                    .cornerRadius(12)
+                                }
+
+                                Button(action: { dismiss() }) {
+                                    Text("Skip setup — go straight in")
+                                        .font(.headline)
+                                        .foregroundColor(.primaryText)
+                                        .frame(maxWidth: .infinity)
+                                        .frame(height: 50)
+                                        .background(Color.transparent)
+                                        .cornerRadius(12)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .stroke(Color.borderColor.opacity(0.5), lineWidth: 1)
+                                        )
+                                }
                             }
                         }
                         .padding(20)
@@ -329,5 +365,72 @@ struct StudyPlanView: View {
             }
         }
         .preferredColorScheme(nil)
+        .onAppear {
+            recordAttemptStatsIfNeeded()
+        }
+        .navigationDestination(isPresented: $showProfileScreen) {
+            ProfileView(
+                name: registeredName,
+                surname: registeredSurname,
+                selectedLanguage: selectedLanguage,
+                testAttempts: testAttempts,
+                successPercent: successPercent
+            )
+        }
+        .sheet(isPresented: $showRegistrationSheet) {
+            RegisterUserView(onSave: { name, surname in
+                registeredName = name
+                registeredSurname = surname
+                onUserRegistered(name, surname)
+                showRegistrationSheet = false
+                showProfileScreen = true
+            })
+            .presentationDetents([.fraction(0.5)])
+            .presentationDragIndicator(.hidden)
+            .presentationBackgroundInteraction(.disabled)
+        }
+        .overlay {
+            if showRegistrationSheet {
+                Color.black.opacity(0.30)
+                    .ignoresSafeArea()
+                    .allowsHitTesting(false)
+            }
+        }
+    }
+    
+    private var successPercent: Int {
+        guard totalAnsweredQuestions > 0 else { return 0 }
+        let ratio = Double(totalCorrectAnswers) / Double(totalAnsweredQuestions)
+        return Int((ratio * 100).rounded())
+    }
+    
+    private var isAuthorized: Bool {
+        !registeredName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !registeredSurname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+    
+    private func recordAttemptStatsIfNeeded() {
+        guard !hasRecordedAttempt else { return }
+        guard totalQuestions > 0 else { return }
+        
+        let today = currentDayKey()
+        if lastAttemptDate != today {
+            attemptsToday = 0
+            lastAttemptDate = today
+        }
+        
+        hasRecordedAttempt = true
+        testAttempts += 1
+        attemptsToday += 1
+        totalCorrectAnswers += correctCount
+        totalAnsweredQuestions += totalQuestions
+    }
+    
+    private func currentDayKey() -> String {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: Date())
     }
 }
