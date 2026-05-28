@@ -183,31 +183,30 @@ struct ContentView: View {
             .navigationTitle("Home")
             .navigationBarHidden(true)
         }
-        .onAppear() {
-            questions = loadQuestions()
+        .task {
+            await loadQuestions()
         }
     }
     
-    private func loadQuestions() -> [QuizQuestion] {
+    @MainActor
+    private func loadQuestions() async {
+        guard let url = URL(string: "https://dummyjson.com/c/dfa8-ce79-4ada-8bea") else {
+            questions = []
+            return
+        }
         
-        guard let path = Bundle.main.path(forResource: "questions", ofType: "json")
-        else {
-            return []
-        }
-
-        let fileManager = FileManager.default
-
-        guard fileManager.fileExists(atPath: path)
-        else {
-            return []
-        }
-
         do {
-            let data = try Data(contentsOf: URL(fileURLWithPath: path))
-            let questions = try JSONDecoder().decode([QuizQuestion].self, from: data)
-            return questions
+            let (data, response) = try await URLSession.shared.data(from: url)
+            guard let httpResponse = response as? HTTPURLResponse,
+                  200...299 ~= httpResponse.statusCode else {
+                questions = []
+                return
+            }
+            
+            let decodedQuestions = try JSONDecoder().decode([QuizQuestion].self, from: data)
+            questions = decodedQuestions
         } catch {
-            return []
+            questions = []
         }
     }
     
