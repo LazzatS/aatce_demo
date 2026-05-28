@@ -41,9 +41,9 @@ struct QuestionCardView: View {
             HStack {
                 Text(question.difficulty)
                     .font(.caption)
-                    .foregroundColor(.goldYellow)
+                    .foregroundColor(difficultyColor)
                     .padding(.horizontal, 10).padding(.vertical, 4)
-                    .background(Color.goldYellow.opacity(0.15))
+                    .background(difficultyColor.opacity(0.15))
                     .cornerRadius(20)
 
                 Spacer()
@@ -69,5 +69,16 @@ struct QuestionCardView: View {
         .padding(16)
         .background(Color.cardBg)
         .cornerRadius(16)
+    }
+    
+    private var difficultyColor: Color {
+        switch question.difficulty.lowercased() {
+        case "easy":
+            return .correctGreen
+        case "hard":
+            return .red
+        default:
+            return .goldYellow
+        }
     }
 }
