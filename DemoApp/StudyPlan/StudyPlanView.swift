@@ -55,7 +55,11 @@ struct StudyPlanView: View {
             Color.appBackground.ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // Header
+                
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+
+                        // Header
                 HStack {
                     Spacer()
                     Text("Step 2 of 3")
@@ -64,25 +68,23 @@ struct StudyPlanView: View {
                 }
                 .padding(20)
                 
-                // Progress bar
-                HStack(spacing: 4) {
-                    ForEach(0..<3, id: \.self) { i in
-                        if i < 2 {
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(Color.purpleAccent)
-                                .frame(height: 3)
-                        } else {
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(Color.borderColor.opacity(0.5))
-                                .frame(height: 3)
+                        // Progress bar
+                        HStack(spacing: 4) {
+                            ForEach(0..<3, id: \.self) { i in
+                                if i < 2 {
+                                    RoundedRectangle(cornerRadius: 2)
+                                        .fill(Color.purpleAccent)
+                                        .frame(height: 3)
+                                } else {
+                                    RoundedRectangle(cornerRadius: 2)
+                                        .fill(Color.borderColor.opacity(0.5))
+                                        .frame(height: 3)
+                                }
+                            }
                         }
-                    }
-                }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 24)
-                
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 24) {
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 24)
+
                         // Quiz Results Summary
                         if let _ = quizResults, totalQuestions > 0 {
                             VStack(alignment: .leading, spacing: 12) {
@@ -157,7 +159,7 @@ struct StudyPlanView: View {
                                     .foregroundColor(.secondaryText)
                                 Text("What will you ")
                                     .font(.system(size: 28, weight: .bold))
-                                    .foregroundColor(.primaryText) +
+                                    .foregroundColor(.primaryText)
                                 Text("study?")
                                     .font(.system(size: 28, weight: .bold))
                                     .foregroundColor(.purpleAccent)
@@ -364,6 +366,7 @@ struct StudyPlanView: View {
             recordAttemptStatsIfNeeded()
         }
         .navigationTitle("Study Plan")
+        .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(isPresented: $showProfileScreen) {
             ProfileView(
                 name: registeredName,

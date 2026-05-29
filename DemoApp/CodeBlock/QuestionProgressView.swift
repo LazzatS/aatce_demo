@@ -10,6 +10,7 @@ import SwiftUI
 struct QuestionProgressView: View {
     let current: Int
     let total: Int
+    let completed: Int
 
     var body: some View {
         HStack(spacing: 12) {
@@ -22,7 +23,7 @@ struct QuestionProgressView: View {
                 HStack(spacing: 5) {
                     ForEach(0..<total, id: \.self) { i in
                         RoundedRectangle(cornerRadius: 3)
-                            .fill(i < current - 1 ? Color.purpleAccent : Color.gray.opacity(0.25))
+                            .fill(i < completed ? Color.purpleAccent : Color.gray.opacity(0.25))
                             .frame(height: 6)
                     }
                 }
@@ -31,7 +32,7 @@ struct QuestionProgressView: View {
             Spacer()
 
             HStack(spacing: 0) {
-                Text("\(current - 1)")
+                Text("\(current)")
                     .font(.title2).fontWeight(.bold).foregroundColor(.primaryText)
                 Text("/")
                     .foregroundColor(.secondaryText)
