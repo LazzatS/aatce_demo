@@ -9,6 +9,10 @@ import SwiftUI
 
 struct QuestionCardView: View {
     let question: QuizQuestion
+    let onSkip: () -> Void
+    private let swipeThreshold: CGFloat = 120
+    @State private var dragOffset: CGSize = .zero
+    @State private var isSkipping = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -19,9 +23,7 @@ struct QuestionCardView: View {
                     .padding(.horizontal, 12).padding(.vertical, 6)
                     .background(Color.purpleAccent)
                     .cornerRadius(20)
-
                 Spacer()
-
                 HStack(spacing: 4) {
                     Image(systemName: "arrow.left.arrow.right")
                         .font(.caption)
@@ -69,6 +71,32 @@ struct QuestionCardView: View {
         .padding(16)
         .background(Color.cardBg)
         .cornerRadius(16)
+        .offset(x: dragOffset.width)
+        .rotationEffect(.degrees(Double(dragOffset.width / 20)))
+        .opacity(isSkipping ? 0 : 1)
+        .gesture(
+            DragGesture()
+                .onChanged { value in
+                    dragOffset = value.translation
+                }
+                .onEnded { value in
+                    if abs(value.translation.width) > swipeThreshold {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            isSkipping = true
+                            dragOffset.width = value.translation.width > 0 ? 500 : -500
+                        }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                            onSkip()
+                            dragOffset = .zero
+                            isSkipping = false
+                        }
+                    } else {
+                        withAnimation(.spring()) {
+                            dragOffset = .zero
+                        }
+                    }
+                }
+        )
     }
     
     private var difficultyColor: Color {

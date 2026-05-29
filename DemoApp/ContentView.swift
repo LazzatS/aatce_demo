@@ -33,6 +33,7 @@ struct ContentView: View {
     @AppStorage("stats.totalAnsweredQuestions") private var totalAnsweredQuestions = 0
     @State private var showRoleSelectionSheet = false
     @State private var showProfileScreen = false
+    @State private var showStudyPlanView = false
     
     private var appearanceMode = UserDefaults.standard.string(forKey: "appearanceMode")
     
@@ -50,6 +51,15 @@ struct ContentView: View {
         currentQuestionIndex += 1
         selectedAnswer = nil
         showResult = false
+        navigateToStudyPlanIfNeeded()
+    }
+
+    private func navigateToStudyPlanIfNeeded() {
+        guard !questions.isEmpty,
+              currentQuestionIndex >= questions.count,
+              answeredCards >= questions.count else { return }
+
+        showStudyPlanView = true
     }
     
     private var isUserRegistered: Bool {
@@ -90,7 +100,20 @@ struct ContentView: View {
                         completed: min(currentQuestionIndex, questions.count)
                     )
                     if let question = currentQuestion {
-                        QuestionCardView(question: question)
+                        QuestionCardView(question: question, onSkip: {
+                            if let question = currentQuestion {
+                                quizResults.append(QuizResult(
+                                    questionId: question.id,
+                                    selectedOption: nil,
+                                    isCorrect: false,
+                                    timestamp: Date()
+                                ))
+                                answeredCards += 1
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                loadNextQuestion()
+                            }
+                        })
                         AnswerSectionView(
                             answeredCards: $answeredCards,
                             correctCount: $correctCount,
@@ -158,28 +181,16 @@ struct ContentView: View {
                     successPercent: successPercent
                 )
             }
-            .overlay(alignment: .bottom) {
-                if answeredCards > 0 && currentQuestionIndex >= questions.count {
-                    VStack(spacing: 0) {
-                        Divider()
-                            .background(Color.gray.opacity(0.2))
-                        
-                        NavigationLink(destination: StudyPlanView(quizResults: quizResults, correctCount: correctCount, totalQuestions: questions.count, onUserRegistered: { name, surname in
-                            registeredName = name
-                            registeredSurname = surname
-                        })) {
-                            Text("Submit Answers")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 48)
-                                .background(Color.purpleAccent)
-                                .cornerRadius(12)
-                        }
-                        .padding(16)
+            .navigationDestination(isPresented: $showStudyPlanView) {
+                StudyPlanView(
+                    quizResults: quizResults,
+                    correctCount: correctCount,
+                    totalQuestions: questions.count,
+                    onUserRegistered: { name, surname in
+                        registeredName = name
+                        registeredSurname = surname
                     }
-                    .background(Color.appBackground)
-                }
+                )
             }
             .navigationTitle("Home")
             .navigationBarHidden(true)

@@ -44,7 +44,7 @@ struct QuizOption: Codable {
 
 struct QuizResult {
     let questionId: UUID
-    let selectedOption: String
+    let selectedOption: String?
     let isCorrect: Bool
     let timestamp: Date
 }
