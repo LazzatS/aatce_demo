@@ -86,7 +86,8 @@ struct ContentView: View {
                     }
                     QuestionProgressView(
                         current: questions.isEmpty ? 0 : min(currentQuestionIndex + 1, questions.count),
-                        total: questions.count
+                        total: questions.count,
+                        completed: min(currentQuestionIndex, questions.count)
                     )
                     if let question = currentQuestion {
                         QuestionCardView(question: question)
