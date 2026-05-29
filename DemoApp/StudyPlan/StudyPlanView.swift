@@ -95,7 +95,7 @@ struct StudyPlanView: View {
                     if !isAuthorized {
                         courseSetupView
                     }
-
+                    topicsView
                     actionButtonsView
                 }
             }
@@ -204,7 +204,6 @@ struct StudyPlanView: View {
         VStack(alignment: .leading, spacing: 24) {
             titleView
             languageSelectionView
-            topicsView
             dailyGoalView
             aiInfoBoxView
         }
