@@ -15,18 +15,14 @@ struct ProfileView: View {
     let track: String = "iOS track"
     
     // Statistics
-    let totalAttempts: Int = 148
-    let attemptsTrend: String = "+12 this week"
-    let accuracy: Int = 74
-    let accuracyTrend: String = "+3% vs last week"
-    let dayStreak: Int = 7
-    let bestStreak: String = "Best: 14 days"
-    let missedAnswers: Int = 38
-    let missedPercentage: String = "26% of total"
+    let totalAttempts: Int
+    let accuracy: Int
+    let dayStreak: Int
+    let missedAnswers: Int
     
     // Accuracy data for chart
-    let accuracyData: [Int] = [100, 50, 75, 100, 75, 100, 75]
-    let days: [String] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    let accuracyData: [Int]
+    let days: [String]
     
     // Topics to review
     let topicsToReview: [Topic] = [
@@ -63,14 +59,14 @@ struct ProfileView: View {
                                     icon: "📋",
                                     value: "\(totalAttempts)",
                                     title: "Total attempts",
-                                    subtitle: attemptsTrend
+                                    subtitle: "Total quiz sessions"
                                 )
                                 
                                 StatisticCard(
                                     icon: "✅",
                                     value: "\(accuracy)%",
                                     title: "Accuracy",
-                                    subtitle: accuracyTrend
+                                    subtitle: "Overall accuracy"
                                 )
                             }
                             
@@ -79,14 +75,14 @@ struct ProfileView: View {
                                     icon: "🔥",
                                     value: "\(dayStreak)",
                                     title: "Day streak",
-                                    subtitle: bestStreak
+                                    subtitle: "Current streak"
                                 )
                                 
                                 StatisticCard(
                                     icon: "❌",
                                     value: "\(missedAnswers)",
                                     title: "Missed answers",
-                                    subtitle: missedPercentage
+                                    subtitle: "Incorrect answers"
                                 )
                             }
                         }
@@ -99,11 +95,15 @@ struct ProfileView: View {
                             .font(.caption)
                             .foregroundColor(.secondaryText)
                         
-                        AccuracyChartCard(
-                            data: accuracyData,
-                            days: days,
-                            averageAccuracy: accuracy
-                        )
+                        if accuracyData.isEmpty || days.isEmpty {
+                            EmptyAccuracyChartCard()
+                        } else {
+                            AccuracyChartCard(
+                                data: accuracyData,
+                                days: days,
+                                averageAccuracy: accuracy
+                            )
+                        }
                     }
                     .padding(.horizontal, 16)
                     
@@ -127,6 +127,9 @@ struct ProfileView: View {
         }
         .navigationTitle("Profile")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            print("ProfileView dayStreak =", dayStreak)
+        }
     }
 }
 
@@ -231,6 +234,30 @@ struct StatisticCard: View {
     }
 }
 
+// MARK: - Empty Accuracy Chart Card
+struct EmptyAccuracyChartCard: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 10) {
+                Image(systemName: "chart.bar.xaxis")
+                    .foregroundColor(.purpleAccent)
+                Text("No daily accuracy data yet")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primaryText)
+            }
+
+            Text("Complete quizzes on different days to build your accuracy chart.")
+                .font(.caption)
+                .foregroundColor(.secondaryText)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .background(Color.cardBg)
+        .cornerRadius(12)
+    }
+}
+
 // MARK: - Accuracy Chart Card
 struct AccuracyChartCard: View {
     let data: [Int]
@@ -256,7 +283,7 @@ struct AccuracyChartCard: View {
             
             // Chart bars
             HStack(alignment: .bottom, spacing: 8) {
-                ForEach(0..<data.count, id: \.self) { index in
+                ForEach(0..<min(data.count, days.count), id: \.self) { index in
                     VStack(alignment: .center, spacing: 6) {
                         // Bar
                         VStack {
@@ -349,7 +376,13 @@ struct TopicReviewCard: View {
         ProfileView(
             name: "Aisha",
             surname: "Kenzhe",
-            selectedLanguage: "Swift"
+            selectedLanguage: "Swift",
+            totalAttempts: 148,
+            accuracy: 74,
+            dayStreak: 7,
+            missedAnswers: 38,
+            accuracyData: [],
+            days: []
         )
     }
 }

@@ -27,10 +27,12 @@ struct ContentView: View {
     @AppStorage("user.role") private var storedRole = ""
     @AppStorage("user.selectedLanguage") private var selectedLanguage = "Swift"
     @AppStorage("stats.attempts") private var testAttempts = 0
-    @AppStorage("stats.attemptsToday") private var attemptsToday = 0
+    @AppStorage("stats.streakDays") private var storedStreakDays = 0
     @AppStorage("stats.lastAttemptDate") private var lastAttemptDate = ""
     @AppStorage("stats.totalCorrectAnswers") private var totalCorrectAnswers = 0
     @AppStorage("stats.totalAnsweredQuestions") private var totalAnsweredQuestions = 0
+    @AppStorage("dailyAccuracyData") private var dailyAccuracyDataString = "[]"
+    @AppStorage("dailyAccuracyDays") private var dailyAccuracyDaysString = "[]"
     @State private var showRoleSelectionSheet = false
     @State private var showProfileScreen = false
     @State private var showStudyPlanView = false
@@ -41,6 +43,64 @@ struct ContentView: View {
     // MARK: -
     
     @State private var questions: [QuizQuestion] = []
+    
+    private var dailyAccuracyData: [Int] {
+        (try? JSONDecoder().decode([Int].self, from: Data(dailyAccuracyDataString.utf8))) ?? []
+    }
+
+    private var dailyAccuracyDays: [String] {
+        (try? JSONDecoder().decode([String].self, from: Data(dailyAccuracyDaysString.utf8))) ?? []
+    }
+    
+    private func saveDailyAccuracy(correct: Int, total: Int) {
+        guard total > 0 else { return }
+
+        let accuracy = Int(Double(correct) / Double(total) * 100)
+        let day = DateFormatter.shortWeekday.string(from: Date())
+
+        var data = dailyAccuracyData
+        var days = dailyAccuracyDays
+
+        if days.last == day {
+            data[data.count - 1] = accuracy
+        } else {
+            days.append(day)
+            data.append(accuracy)
+        }
+
+        data = Array(data.suffix(7))
+        days = Array(days.suffix(7))
+
+        dailyAccuracyDataString = String(data: try! JSONEncoder().encode(data), encoding: .utf8) ?? "[]"
+        dailyAccuracyDaysString = String(data: try! JSONEncoder().encode(days), encoding: .utf8) ?? "[]"
+    }
+    
+    private func updateStreakIfNeeded() {
+        let today = currentDayKey()
+
+        print("storedStreakDays =", storedStreakDays)
+        print("lastAttemptDate =", lastAttemptDate)
+        print("today =", today)
+
+        // Recover from broken state:
+        if storedStreakDays == 0 {
+            storedStreakDays = 1
+            lastAttemptDate = today
+            print("Initialized streak to 1")
+            return
+        }
+
+        guard lastAttemptDate != today else { return }
+
+        if lastAttemptDate == yesterdayDayKey() {
+            storedStreakDays += 1
+        } else {
+            storedStreakDays = 1
+        }
+
+        lastAttemptDate = today
+        print("Streak updated:", storedStreakDays)
+    }
     
     var currentQuestion: QuizQuestion? {
         guard currentQuestionIndex < questions.count else { return nil }
@@ -74,8 +134,7 @@ struct ContentView: View {
     }
     
     private var streakDays: Int {
-        guard lastAttemptDate == currentDayKey() else { return 0 }
-        return attemptsToday
+        storedStreakDays
     }
     
     private var xpTotal: Int {
@@ -102,6 +161,7 @@ struct ContentView: View {
                     if let question = currentQuestion {
                         QuestionCardView(question: question, onSkip: {
                             if let question = currentQuestion {
+                                updateStreakIfNeeded()
                                 quizResults.append(QuizResult(
                                     questionId: question.id,
                                     selectedOption: nil,
@@ -123,6 +183,7 @@ struct ContentView: View {
                             onSwapCard: {
                                 // Store result before loading next
                                 if let selected = selectedAnswer, let question = currentQuestion {
+                                    updateStreakIfNeeded()
                                     let option = question.options.first { $0.letter == selected }
                                     quizResults.append(QuizResult(
                                         questionId: question.id,
@@ -177,12 +238,17 @@ struct ContentView: View {
                     name: registeredName,
                     surname: registeredSurname,
                     selectedLanguage: selectedLanguage,
-                    testAttempts: testAttempts,
-                    successPercent: successPercent
+                    totalAttempts: testAttempts,
+                    accuracy: successPercent,
+                    dayStreak: streakDays,
+                    missedAnswers: max(totalAnsweredQuestions - totalCorrectAnswers, 0),
+                    accuracyData: dailyAccuracyData,
+                    days: dailyAccuracyDays
                 )
             }
             .navigationDestination(isPresented: $showStudyPlanView) {
                 StudyPlanView(
+                    streakDays: streakDays,
                     quizResults: quizResults,
                     correctCount: correctCount,
                     totalQuestions: questions.count,
@@ -229,6 +295,24 @@ struct ContentView: View {
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter.string(from: Date())
     }
+    
+    private func yesterdayDayKey() -> String {
+        let calendar = Calendar(identifier: .gregorian)
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: Date()) ?? Date()
+        let formatter = DateFormatter()
+        formatter.calendar = calendar
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: yesterday)
+    }
+}
+
+private extension DateFormatter {
+    static let shortWeekday: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "E"
+        return formatter
+    }()
 }
 
 #Preview {
